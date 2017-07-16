@@ -6,7 +6,7 @@ package com.anjuke.hzl.common;
 public class MathUtils {
 
     public static int sign(double d){
-        if(d > 0){
+        if(d >= 0){
             return 1;
         }else if(d < 0){
             return -1;
