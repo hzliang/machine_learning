@@ -21,10 +21,10 @@ public class FTRLPTest {
                 , "C18", "C19", "C20", "C21"};
 
         Map<String, Object> meta = new HashMap<>(3);
-        meta.put("target", "click");
+        meta.put("targetColumn", "click");
+        meta.put("idColumn", "id");
         meta.put("numberColumns", new String[]{});
-        meta.put("id", new String[]{});
-        meta.put("categorical", strs);
+        meta.put("categoricalColumns", strs);
         String path = "/Users/huzuoliang/train.csv";
         Reader in = new FileReader(path);
         Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);

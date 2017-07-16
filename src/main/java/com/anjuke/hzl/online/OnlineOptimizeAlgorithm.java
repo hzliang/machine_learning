@@ -18,7 +18,7 @@ import java.util.stream.StreamSupport;
 public abstract class OnlineOptimizeAlgorithm {
 
     protected String targetColumn;
-    protected String[] descriptiveColumns;
+    protected String idColumn;
     protected String[] numberColumns;
     protected String[] categoricalColumns;
 
@@ -29,11 +29,10 @@ public abstract class OnlineOptimizeAlgorithm {
 
     protected OnlineOptimizeAlgorithm(Map<String, Object> meta) {
 
-        this.targetColumn = meta.get("target").toString();
+        this.targetColumn = meta.get("targetColumn").toString();
+        this.idColumn = meta.get("idColumn").toString();
         this.numberColumns = (String[]) meta.get("numberColumns");
-        this.descriptiveColumns = (String[]) meta.get("id");
-        this.categoricalColumns = (String[]) meta.get("categorical");
-
+        this.categoricalColumns = (String[]) meta.get("categoricalColumns");
         this.status = TrickStatus.toLong(1,1,1,100000,10000000,1);
     }
 
@@ -43,21 +42,66 @@ public abstract class OnlineOptimizeAlgorithm {
         this.status = status;
     }
 
+
+    /**
+     * you should get the predict probality or value from wtx
+     * which means weight vector w multiply data vector x
+     * @param wtx weight vector w multiply data vector x
+     * @return
+     */
     protected abstract double probalityFunction(double wtx);
 
+    /**
+     * the grandient of the loss function
+     * @param p predict value
+     * @param y really value
+     * @param xi the value of data in certain dimension
+     * @return
+     */
     protected abstract double lossGradientFunction(double p, double y, double xi);
 
+    /**
+     * cost function
+     * @param p predict value
+     * @param y really value
+     * @return
+     */
     protected abstract double lossFunction(double p, double y);
 
+    /**
+     * train will compute wtx(w.transport * x) and probality p
+     * and then call update function to udpate weight
+     * @param index
+     * @param x
+     * @param target
+     */
     protected abstract void train(long index, Map<Integer, Double> x, int target);
 
+    /**
+     * function to update something param
+     * @param y
+     * @param p
+     * @param x
+     * @param w
+     */
     protected abstract void update(double y, double p, Map<Integer, Double> x, Map<Integer, Double> w);
 
+    /**
+     * weight vector w multiply data vector x
+     * @param x
+     * @param w
+     * @return
+     */
     protected abstract double wtx(Map<Integer, Double> x, Map<Integer, Double> w);
 
+    /**
+     * predict the probality of a record to be positive
+     * @param records
+     * @return
+     */
     public List<Pair> predictProbability(Iterable<CSVRecord> records) {
         return StreamSupport.stream(records.spliterator(), true).map(item -> {
-            final String id = item.get(targetColumn);
+            final String id = item.get(this.idColumn);
             final Map<Integer, Double> x = getLine(item);
             final double wtx = wtx(x, new HashMap<>());
             return new Pair(id, probalityFunction(wtx));
