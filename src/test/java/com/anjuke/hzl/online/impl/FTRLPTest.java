@@ -28,7 +28,7 @@ public class FTRLPTest {
         String path = "/Users/huzuoliang/train.csv";
         Reader in = new FileReader(path);
         Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
-        FTRLP ftrlp = new FTRLP(meta);
+        FTRLP ftrlp = new FTRLP(meta,0.9,1,0.03,1);
         ftrlp.fit(records);
 
         path = "/Users/huzuoliang/test.csv";
