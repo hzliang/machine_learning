@@ -1,4 +1,4 @@
-package com.anjuke.hzl.define;
+package com.anjuke.hzl.online;
 
 import com.anjuke.hzl.common.Pair;
 import org.apache.commons.csv.CSVRecord;

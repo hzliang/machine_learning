@@ -1,11 +1,10 @@
-package com.anjuke.hzl.impl;
+package com.anjuke.hzl.online.impl;
 
 import com.anjuke.hzl.common.Pair;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

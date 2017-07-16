@@ -1,17 +1,14 @@
-package com.anjuke.hzl.impl;
+package com.anjuke.hzl.online.impl;
 
 import com.anjuke.hzl.common.MathUtils;
 import com.anjuke.hzl.common.OnlineOptimizeAlgorithmConst;
 import com.anjuke.hzl.common.Pair;
-import com.anjuke.hzl.define.OnlineOptimizeAlgorithm;
+import com.anjuke.hzl.online.OnlineOptimizeAlgorithm;
 import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.List;
