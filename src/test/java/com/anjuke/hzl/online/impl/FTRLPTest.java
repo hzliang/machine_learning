@@ -25,22 +25,13 @@ public class FTRLPTest {
         meta.put("idColumn", "id");
         meta.put("numberColumns", new String[]{});
         meta.put("categoricalColumns", strs);
-        String path = "/Users/huzuoliang/train.csv";
-        Reader in = new FileReader(path);
-        Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
+        String path = "/root/train.csv";
         FTRLP ftrlp = new FTRLP(meta,0.9,1,0.03,1);
-        ftrlp.fit(records);
+        ftrlp.fit(path);
 
-        path = "/Users/huzuoliang/test.csv";
-        in = new FileReader(path);
-        records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
-        List<Pair> ps = ftrlp.predictProbability(records);
-        StringBuilder sb =new StringBuilder();
-        for (Pair p : ps) {
-            sb.append(p.toString()+"\n");
-        }
+        path = "/root/test.csv";
         FileWriter fw = new FileWriter("opt.csv");
-        fw.write(sb.toString());
+        fw.write(ftrlp.forKaggle(path));
         fw.close();
     }
 }

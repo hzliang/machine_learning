@@ -2,9 +2,16 @@ package com.anjuke.hzl.online;
 
 import com.anjuke.hzl.common.Pair;
 import com.anjuke.hzl.common.TrickStatus;
+import com.anjuke.hzl.online.impl.FTRLP;
+import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +23,7 @@ import java.util.stream.StreamSupport;
  * Created by huzuoliang on 2017/7/15.
  */
 public abstract class OnlineOptimizeAlgorithm {
+    private final static Logger logger = LoggerFactory.getLogger(OnlineOptimizeAlgorithm.class);
 
     protected String targetColumn;
     protected String idColumn;
@@ -33,7 +41,7 @@ public abstract class OnlineOptimizeAlgorithm {
         this.idColumn = meta.get("idColumn").toString();
         this.numberColumns = (String[]) meta.get("numberColumns");
         this.categoricalColumns = (String[]) meta.get("categoricalColumns");
-        this.status = TrickStatus.toLong(1,1,1,100000,10000000,1);
+        this.status = TrickStatus.toLong(1,1,1,20000000,4000000,2);
     }
 
     public OnlineOptimizeAlgorithm(Map<String, Object> meta, long status) {
@@ -96,10 +104,13 @@ public abstract class OnlineOptimizeAlgorithm {
 
     /**
      * predict the probality of a record to be positive
-     * @param records
+     * @param path
      * @return
      */
-    public List<Pair> predictProbability(Iterable<CSVRecord> records) {
+    public List<Pair> predictProbability(String path) throws IOException {
+        logger.info("predict probability start...");
+        Reader in = new FileReader(path);
+        Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
         return StreamSupport.stream(records.spliterator(), true).map(item -> {
             final String id = item.get(this.idColumn);
             final Map<Integer, Double> x = getLine(item);
@@ -108,7 +119,22 @@ public abstract class OnlineOptimizeAlgorithm {
         }).collect(Collectors.toList());
     }
 
-    protected abstract int predictClass(Map<Integer, Double> x);
+    public String forKaggle(String path) throws IOException {
+        logger.info("predict probability start...");
+        Reader in = new FileReader(path);
+        Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
+        StringBuffer sb= new StringBuffer(1000000);
+        sb.append("id,click\n");
+        StreamSupport.stream(records.spliterator(), false).forEach(item -> {
+            final String id = item.get(this.idColumn);
+            final Map<Integer, Double> x = getLine(item);
+            final double wtx = wtx(x, new HashMap<>());
+            sb.append(id+","+probalityFunction(wtx)+"\n");
+        });
+        return sb.toString();
+    }
+
+    protected abstract List<Pair> predictClass(String path);
 
     /**
      * get input
@@ -119,20 +145,21 @@ public abstract class OnlineOptimizeAlgorithm {
     private Map<Integer, Double> getLine(CSVRecord record) {
 
         Map<Integer, Double> x = new HashMap<>();
-        for (int i = 0; i < numberColumns.length; i++) {
+        final int numberColumnsLen = numberColumns.length;
+        for (int i = 0; i < numberColumnsLen; i++) {
             double value = Double.parseDouble(record.get(numberColumns[i]));
             x.put(i, value);
         }
         if (TrickStatus.useHashTrick(status)) {
             Stream.of(categoricalColumns).forEach(item -> {
                 String value = record.get(item);
-                int hashIndex = hash(item, value) + numberColumns.length;
+                int hashIndex = hash(item, value) + numberColumnsLen;
                 x.put(hashIndex, x.getOrDefault(hashIndex, 0.0) + 1);
             });
             return x;
         }
         for (int i = 0; i < categoricalColumns.length; i++) {
-            x.put(i, x.getOrDefault(i, 0.0) + 1);
+            x.put(i + numberColumnsLen, x.getOrDefault(i, 0.0) + 1);
         }
         return x;
     }
@@ -147,14 +174,29 @@ public abstract class OnlineOptimizeAlgorithm {
         return Math.abs((key+"_"+value).hashCode()) % TrickStatus.getMaxFeatures(status);
     }
 
-    public void fit(Iterable<CSVRecord> records) throws IOException {
+    /**
+     * the fucntion to expose to user for call
+     * which really train on the train dataset
+     * @param path
+     * @throws IOException
+     */
+    public void fit(String path) throws IOException {
 
-        int t = 0;
-        for (CSVRecord record : records) {
-            final int y = Integer.parseInt(record.get(this.targetColumn));
-            Map<Integer, Double> x = getLine(record);
-            train(t, x, y);
-            t++;
+        int sampleIndex = 0;
+        final int epochs = TrickStatus.getEpochs(status);
+        // iter times equal epochs
+        for (int i = 1; i <= epochs ; i++) {
+            logger.info("the {} time train starting",
+                    i == 1 ? "first" : (i == epochs ? "last" : i));
+            Reader in = new FileReader(path);
+            Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
+            for (CSVRecord record : records) {
+                final int y = Integer.parseInt(record.get(this.targetColumn));
+                Map<Integer, Double> x = getLine(record);
+                train(sampleIndex++, x, y);
+            }
         }
+
+
     }
 }

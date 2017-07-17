@@ -1,6 +1,7 @@
 package com.anjuke.hzl.online.impl;
 
 import com.anjuke.hzl.common.MathUtils;
+import com.anjuke.hzl.common.Pair;
 import com.anjuke.hzl.common.TrickStatus;
 import com.anjuke.hzl.online.OnlineOptimizeAlgorithm;
 import org.slf4j.Logger;
@@ -8,14 +9,16 @@ import org.slf4j.LoggerFactory;
 
 import java.text.NumberFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by huzuoliang on 2017/7/15.
  */
 public class FTRLP extends OnlineOptimizeAlgorithm {
 
-    private final static Logger logger = LoggerFactory.getLogger(OnlineOptimizeAlgorithm.class);
+    private final static Logger logger = LoggerFactory.getLogger(FTRLP.class);
     private final static NumberFormat nf = NumberFormat.getInstance();
 
     private final Map<Integer, Double> z;
@@ -98,10 +101,10 @@ public class FTRLP extends OnlineOptimizeAlgorithm {
         final Map<Integer, Double> w = new HashMap<>();
         double wtx = wtx(x, w);
         double p = probalityFunction(wtx);
-        logLikelihood += lossFunction(p, y);
+        this.logLikelihood += lossFunction(p, y);
 
         if ((index + 1) % TrickStatus.getPrintEveryLineNum(status) == 0) {
-            logger.info("index = " + (index + 1) + ", lossFunction = " + nf.format(logLikelihood));
+            logger.debug("index = " + (index + 1) + ", lossFunction = " + nf.format(logLikelihood));
         }
         this.update(y, p, x, w);
     }
@@ -131,9 +134,11 @@ public class FTRLP extends OnlineOptimizeAlgorithm {
     }
 
     @Override
-    public int predictClass(Map<Integer, Double> x) {
-//        double p = predictProbability(x);
-//        return p < this.targetRatio ? -1 : 1;
-        return 0;
+    public List<Pair> predictClass(String path) {
+        return this.predictClass(path).stream().map(pair -> {
+            double value =(Double) pair.getValue();
+            pair.setValue(value >= this.targetRatio ? 1 : -1);
+            return pair;
+        }).collect(Collectors.toList());
     }
 }

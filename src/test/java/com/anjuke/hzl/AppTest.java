@@ -1,8 +1,16 @@
 package com.anjuke.hzl;
 
+import com.anjuke.hzl.online.impl.FTRLP;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 
 /**
  * Unit test for simple App.
@@ -31,13 +39,8 @@ public class AppTest
     /**
      * Rigourous Test :-)
      */
-    public void testApp()
-    {
+    public void testApp() throws IOException {
 
-        String s= "a";
-        String ss = new String("abcdef");
-        String sss = new String("abc");
-        System.out.println(sss.hashCode());
-        System.out.println(ss.hashCode());
+        System.out.println(Long.MAX_VALUE);
     }
 }
