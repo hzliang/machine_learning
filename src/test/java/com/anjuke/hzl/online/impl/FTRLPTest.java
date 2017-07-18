@@ -25,7 +25,7 @@ public class FTRLPTest {
         meta.put("idColumn", "id");
         meta.put("numberColumns", new String[]{});
         meta.put("categoricalColumns", strs);
-        String path = "/root/train.csv";
+        String path = "/root/calc.csv";
         FTRLP ftrlp = new FTRLP(meta,0.9,1,0.03,1);
         ftrlp.fit(path);
 

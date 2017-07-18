@@ -94,7 +94,7 @@ public class FTRLP extends OnlineOptimizeAlgorithm {
     }
 
     @Override
-    protected void train(long index, Map<Integer, Double> x, int y) {
+    protected void calc(long index, Map<Integer, Double> x, int y) {
 
         this.targetRatio = (1.0 * (index * this.targetRatio + y)) / (index + 1);
 

@@ -2,13 +2,11 @@ package com.anjuke.hzl.online;
 
 import com.anjuke.hzl.common.Pair;
 import com.anjuke.hzl.common.TrickStatus;
-import com.anjuke.hzl.online.impl.FTRLP;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -21,6 +19,7 @@ import java.util.stream.StreamSupport;
 
 /**
  * Created by huzuoliang on 2017/7/15.
+ * after using hash trick,the zero xi do need care
  */
 public abstract class OnlineOptimizeAlgorithm {
     private final static Logger logger = LoggerFactory.getLogger(OnlineOptimizeAlgorithm.class);
@@ -77,13 +76,13 @@ public abstract class OnlineOptimizeAlgorithm {
     protected abstract double lossFunction(double p, double y);
 
     /**
-     * train will compute wtx(w.transport * x) and probality p
+     * calc will compute wtx(w.transport * x) and probality p
      * and then call update function to udpate weight
      * @param index
      * @param x
      * @param target
      */
-    protected abstract void train(long index, Map<Integer, Double> x, int target);
+    protected abstract void calc(long index, Map<Integer, Double> x, int target);
 
     /**
      * function to update something param
@@ -176,7 +175,7 @@ public abstract class OnlineOptimizeAlgorithm {
 
     /**
      * the fucntion to expose to user for call
-     * which really train on the train dataset
+     * which really calc on the calc dataset
      * @param path
      * @throws IOException
      */
@@ -186,14 +185,14 @@ public abstract class OnlineOptimizeAlgorithm {
         final int epochs = TrickStatus.getEpochs(status);
         // iter times equal epochs
         for (int i = 1; i <= epochs ; i++) {
-            logger.info("the {} time train starting",
+            logger.info("the {} time calc starting",
                     i == 1 ? "first" : (i == epochs ? "last" : i));
             Reader in = new FileReader(path);
             Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
             for (CSVRecord record : records) {
                 final int y = Integer.parseInt(record.get(this.targetColumn));
                 Map<Integer, Double> x = getLine(record);
-                train(sampleIndex++, x, y);
+                calc(sampleIndex++, x, y);
             }
         }
 
