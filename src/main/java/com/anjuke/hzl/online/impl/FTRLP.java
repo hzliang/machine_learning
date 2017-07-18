@@ -21,8 +21,8 @@ public class FTRLP extends OnlineOptimizeAlgorithm {
     private final static Logger logger = LoggerFactory.getLogger(FTRLP.class);
     private final static NumberFormat nf = NumberFormat.getInstance();
 
-    private final Map<Integer, Double> z;
-    private final Map<Integer, Double> n;
+    private final Map<Integer, Double> z; // 更新目标函数的梯度公式
+    private final Map<Integer, Double> n; // 第i维梯度平方累加和值
 
     private double l1;
     private double l2;
@@ -87,7 +87,7 @@ public class FTRLP extends OnlineOptimizeAlgorithm {
             double g = lossGradientFunction(p, y, x.get(item));
             double s = (Math.sqrt(n.getOrDefault(item, 0.0) + g * g)
                     - Math.sqrt(n.getOrDefault(item, 0.0)))
-                    / this.alpha;
+                    / this.alpha; // 控制更新速度 s1+s2+s3+s4+...+si = learning rate(i)
             z.put(item, z.getOrDefault(item, 0.0) + g - s * w.get(item));
             n.put(item, n.getOrDefault(item, 0.0) + g * g);
         });
